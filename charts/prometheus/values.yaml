@@ -1599,7 +1599,30 @@ serverFiles:
 # must be a string so you have to add a | after extraScrapeConfigs:
 # example adds prometheus-blackbox-exporter scrape config
 extraScrapeConfigs:
-  # - job_name: 'prometheus-blackbox-exporter'
+    - job_name: actuator-demo
+    metrics_path: /metrics
+      scrape_interval: 10s
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - actuator-demo-namespace
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:8080
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: actuator-demo
+  # - job_name: 'prometheus-namespace-exporter'
   #   metrics_path: /probe
   #   params:
   #     module: [http_2xx]
